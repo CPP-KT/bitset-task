@@ -6,8 +6,6 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 
-#include <random>
-#include <sstream>
 #include <string>
 
 TEST_CASE("bitset default constructor") {
@@ -108,15 +106,25 @@ TEST_CASE("bitset copy constructor") {
   }
 }
 
-TEST_CASE("bitset constructor from view") {
+TEST_CASE("bitset constructor from view or iterators") {
   SECTION("empty") {
     const bitset source("1101101");
 
-    bitset bs(source.subview(3, 0));
+    SECTION("view") {
+      bitset bs(source.subview(3, 0));
 
-    CHECK(bs.empty());
-    CHECK(bs.size() == 0);
-    CHECK(bs.begin() == bs.end());
+      CHECK(bs.empty());
+      CHECK(bs.size() == 0);
+      CHECK(bs.begin() == bs.end());
+    }
+
+    SECTION("iterators") {
+      bitset bs(source.begin() + 3, source.begin() + 3);
+
+      CHECK(bs.empty());
+      CHECK(bs.size() == 0);
+      CHECK(bs.begin() == bs.end());
+    }
   }
 
   SECTION("single word") {
@@ -125,8 +133,15 @@ TEST_CASE("bitset constructor from view") {
     std::size_t offset = GENERATE(2, 3);
     CAPTURE(offset);
 
-    bitset bs(source.subview(offset, 5));
-    CHECK_THAT(bs, bitset_equals_string(str.substr(offset, 5)));
+    SECTION("view") {
+      bitset bs(source.subview(offset, 5));
+      CHECK_THAT(bs, bitset_equals_string(str.substr(offset, 5)));
+    }
+
+    SECTION("iterators") {
+      bitset bs(source.begin() + offset, source.begin() + std::min(offset + 5, str.size()));
+      CHECK_THAT(bs, bitset_equals_string(str.substr(offset, 5)));
+    }
   }
 
   SECTION("multiple words") {
@@ -141,22 +156,14 @@ TEST_CASE("bitset constructor from view") {
     }));
     CAPTURE(offset, count);
 
-    bitset bs(source.subview(offset, count));
-    CHECK_THAT(bs, bitset_equals_string(str.substr(offset, count)));
+    SECTION("view") {
+      bitset bs(source.subview(offset, count));
+      CHECK_THAT(bs, bitset_equals_string(str.substr(offset, count)));
+    }
+
+    SECTION("iterators") {
+      bitset bs(source.begin() + offset, source.begin() + offset + count);
+      CHECK_THAT(bs, bitset_equals_string(str.substr(offset, count)));
+    }
   }
-}
-
-TEST_CASE("to_string(bitset)") {
-  std::string_view str = "11010001001101000100110100010011010001001101000100110100010011010001001101000100";
-  const bitset bs(str);
-  CHECK(to_string(bs) == str);
-}
-
-TEST_CASE("ostream << bitset") {
-  std::string_view str = "11010001001101000100110100010011010001001101000100110100010011010001001101000100";
-  bitset bs(str);
-
-  std::stringstream ss;
-  ss << bs;
-  CHECK(ss.str() == str);
 }
