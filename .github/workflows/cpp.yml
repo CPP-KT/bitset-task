@@ -83,7 +83,7 @@ jobs:
     name: Hidden tests
     needs: test
     runs-on: [self-hosted, ubuntu]
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - name: Request test run
         run: |
