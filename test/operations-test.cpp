@@ -349,7 +349,7 @@ TEST_CASE("views swap") {
 
 TEST_CASE("bitset::all/any/count") {
   SECTION("empty") {
-    BitSet bs;
+    const BitSet bs;
     CHECK(bs.all() == true);
     CHECK(bs.any() == false);
     CHECK(bs.count() == 0);
@@ -360,7 +360,7 @@ TEST_CASE("bitset::all/any/count") {
     CAPTURE(str);
 
     std::size_t ones = std::ranges::count(str, '1');
-    BitSet bs(str);
+    const BitSet bs(str);
     CHECK(bs.all() == (ones == str.size()));
     CHECK(bs.any() == (ones != 0));
     CHECK(bs.count() == ones);
@@ -375,7 +375,7 @@ TEST_CASE("bitset::all/any/count") {
     CAPTURE(str);
 
     std::size_t ones = std::ranges::count(str, '1');
-    BitSet bs(str);
+    const BitSet bs(str);
     CHECK(bs.all() == (ones == str.size()));
     CHECK(bs.any() == (ones != 0));
     CHECK(bs.count() == ones);
@@ -437,24 +437,34 @@ TEST_CASE("bitset comparison") {
 TEST_CASE("view operations") {
   BitSet bs("1110010101");
 
-  BitSet::ConstView bs_view_1 = bs.subview(0, 5);
-  BitSet::ConstView bs_view_2 = bs.subview(5);
+  const BitSet::ConstView bs_const_view_1 = bs.subview(0, 5);
+  const BitSet::ConstView bs_const_view_2 = bs.subview(5);
+  const BitSet::View bs_view_1 = bs.subview(0, 5);
+  const BitSet::View bs_view_2 = bs.subview(5);
 
-  CHECK((bs_view_1 & bs_view_2) == BitSet("10100"));
-  CHECK((bs_view_1 | bs_view_2) == BitSet("11101"));
+  CHECK((bs_const_view_1.subview() & bs_const_view_2) == BitSet("10100"));
+  CHECK((bs_const_view_1 | bs_const_view_2.subview()) == BitSet("11101"));
+  CHECK((bs_const_view_1 ^ bs_const_view_2) == BitSet("01001"));
+  CHECK((bs_const_view_2 << 2) == BitSet("1010100"));
+  CHECK((bs_const_view_1 >> 3) == BitSet("11"));
+  CHECK(~bs_const_view_1 == BitSet("00011"));
+  CHECK(bs_const_view_1.count() == 3);
+
+  CHECK((bs_view_1.subview() & bs_view_2) == BitSet("10100"));
+  CHECK((bs_view_1 | bs_view_2.subview()) == BitSet("11101"));
   CHECK((bs_view_1 ^ bs_view_2) == BitSet("01001"));
   CHECK((bs_view_2 << 2) == BitSet("1010100"));
   CHECK((bs_view_1 >> 3) == BitSet("11"));
   CHECK(~bs_view_1 == BitSet("00011"));
   CHECK(bs_view_1.count() == 3);
 
-  bs.subview()[0] = false;
+  bs_view_1[0] = false;
   CHECK(bs == BitSet("0110010101"));
 
-  bs.subview(5).flip();
+  bs_view_2.flip();
   CHECK(bs == BitSet("0110001010"));
 
-  const BitSet::View bs_view_3 = bs.subview(2, 3);
+  const BitSet::View bs_view_3 = bs_view_1.subview(2, 3);
   bs_view_3.set();
   CHECK(bs == BitSet("0111101010"));
 
@@ -469,8 +479,8 @@ TEST_CASE("chained view operations") {
   BitSet bs_1("0011000011");
   BitSet bs_2("1110010101");
 
-  BitSet::View bs_view_1 = bs_1.subview();
-  BitSet::View bs_view_2 = bs_2.subview();
+  const BitSet::View bs_view_1 = bs_1.subview();
+  const BitSet::View bs_view_2 = bs_2.subview();
 
   bs_view_1 |= bs_view_2.flip();
   CHECK(bs_1 == BitSet("0011101011"));
@@ -487,6 +497,46 @@ TEST_CASE("chained view operations") {
   std::as_const(bs_view_1).flip() &= bs_view_2;
   CHECK(bs_1 == BitSet("0010000001"));
   CHECK(bs_2 == BitSet("1110010101"));
+}
+
+TEST_CASE("Iterators with different constness operations") {
+  BitSet bs("110101");
+  std::ptrdiff_t i = GENERATE(0, 1, 6);
+  BitSet::Iterator it = bs.begin() + i;
+  BitSet::ConstIterator cit = bs.begin() + i;
+  REQUIRE(cit == it);
+  REQUIRE(it == cit);
+  REQUIRE_FALSE(cit != it);
+  REQUIRE_FALSE(it != cit);
+
+  std::ptrdiff_t j = GENERATE(0, 1, 6);
+  BitSet::Iterator it2 = bs.begin() + j;
+  BitSet::ConstIterator cit2 = it2;
+  REQUIRE(cit2 - it == j - i);
+  REQUIRE(it2 - cit == j - i);
+}
+
+TEST_CASE("Reference with different constness operations") {
+  BitSet bs("110101");
+  std::size_t i = GENERATE(0, 1, 5);
+  const BitSet::Reference ref1 = bs[i];
+  const BitSet::ConstReference ref2 = bs[i];
+  REQUIRE(ref1 == ref2);
+  REQUIRE(ref2 == ref1);
+  REQUIRE_FALSE(ref1 != ref2);
+  REQUIRE_FALSE(ref2 != ref1);
+}
+
+TEST_CASE("View with different constness operations") {
+  BitSet bs("110101");
+  std::size_t i = GENERATE(0, 1, 4);
+  std::size_t len = GENERATE(0, 1);
+  const BitSet::View view1 = bs.subview(i, len);
+  const BitSet::ConstView view2 = bs.subview(i, len);
+  REQUIRE(view1 == view2);
+  REQUIRE_FALSE(view1 != view2);
+  REQUIRE(view2 == view1);
+  REQUIRE_FALSE(view2 != view1);
 }
 
 } // namespace ct::test

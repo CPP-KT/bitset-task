@@ -42,7 +42,16 @@ TEST_CASE("member types") {
     STATIC_CHECK(std::is_same_v<BitSet::View::ConstReference, BitSet::ConstReference>);
     STATIC_CHECK(std::is_same_v<BitSet::ConstView::Reference, BitSet::ConstReference>);
     STATIC_CHECK(std::is_same_v<BitSet::ConstView::ConstReference, BitSet::ConstReference>);
+
+    STATIC_CHECK(std::is_same_v<BitSet::ConstView::Iterator, BitSet::Iterator>);
+    STATIC_CHECK(std::is_same_v<BitSet::ConstView::ConstIterator, BitSet::ConstIterator>);
   }
+}
+
+TEST_CASE("Concepts") {
+  STATIC_CHECK(std::random_access_iterator<BitSet::ConstIterator>);
+  STATIC_CHECK(std::random_access_iterator<BitSet::Iterator>);
+  STATIC_CHECK(std::output_iterator<BitSet::Iterator, bool>);
 }
 
 } // namespace ct::test
