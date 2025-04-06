@@ -48,7 +48,7 @@ TEST_CASE("member types") {
   }
 }
 
-TEST_CASE("Concepts") {
+TEST_CASE("concepts") {
   STATIC_CHECK(std::random_access_iterator<BitSet::ConstIterator>);
   STATIC_CHECK(std::random_access_iterator<BitSet::Iterator>);
   STATIC_CHECK(std::output_iterator<BitSet::Iterator, bool>);

@@ -499,7 +499,7 @@ TEST_CASE("chained view operations") {
   CHECK(bs_2 == BitSet("1110010101"));
 }
 
-TEST_CASE("Iterators with different constness operations") {
+TEST_CASE("iterators with different constness operations") {
   BitSet bs("110101");
   std::ptrdiff_t i = GENERATE(0, 1, 6);
   BitSet::Iterator it = bs.begin() + i;
@@ -516,7 +516,7 @@ TEST_CASE("Iterators with different constness operations") {
   REQUIRE(it2 - cit == j - i);
 }
 
-TEST_CASE("Reference with different constness operations") {
+TEST_CASE("reference with different constness operations") {
   BitSet bs("110101");
   std::size_t i = GENERATE(0, 1, 5);
   const BitSet::Reference ref1 = bs[i];
@@ -527,7 +527,7 @@ TEST_CASE("Reference with different constness operations") {
   REQUIRE_FALSE(ref2 != ref1);
 }
 
-TEST_CASE("View with different constness operations") {
+TEST_CASE("view with different constness operations") {
   BitSet bs("110101");
   std::size_t i = GENERATE(0, 1, 4);
   std::size_t len = GENERATE(0, 1);
