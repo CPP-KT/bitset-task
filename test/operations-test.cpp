@@ -539,4 +539,20 @@ TEST_CASE("view with different constness operations") {
   REQUIRE_FALSE(view2 != view1);
 }
 
+TEST_CASE("bitset and view comparison") {
+  BitSet bs("110101");
+  const BitSet::View view = bs;
+  const BitSet::ConstView const_view = bs;
+  const BitSet& const_bs = bs;
+
+  REQUIRE(const_bs == view);
+  REQUIRE_FALSE(const_bs != view);
+  REQUIRE(view == const_bs);
+  REQUIRE_FALSE(view != const_bs);
+  REQUIRE(const_bs == const_view);
+  REQUIRE_FALSE(const_bs != const_view);
+  REQUIRE(const_view == const_bs);
+  REQUIRE_FALSE(const_view != const_bs);
+}
+
 } // namespace ct::test
