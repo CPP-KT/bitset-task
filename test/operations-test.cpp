@@ -665,13 +665,21 @@ TEST_CASE("bitset and view comparison") {
   const BitSet& const_bs = bs;
 
   REQUIRE(const_bs == view);
+  REQUIRE(bs == view);
   REQUIRE_FALSE(const_bs != view);
+  REQUIRE_FALSE(bs != view);
   REQUIRE(view == const_bs);
+  REQUIRE(view == bs);
   REQUIRE_FALSE(view != const_bs);
+  REQUIRE_FALSE(view != bs);
   REQUIRE(const_bs == const_view);
+  REQUIRE(bs == const_view);
   REQUIRE_FALSE(const_bs != const_view);
+  REQUIRE_FALSE(bs != const_view);
   REQUIRE(const_view == const_bs);
+  REQUIRE(const_view == bs);
   REQUIRE_FALSE(const_view != const_bs);
+  REQUIRE_FALSE(const_view != bs);
 }
 
 } // namespace ct::test
