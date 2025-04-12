@@ -115,21 +115,27 @@ TEST_CASE("bitwise operations") {
 
     bs &= bs;
     REQUIRE(bs.empty());
+    REQUIRE((bs & bs).empty());
 
     bs |= bs;
     REQUIRE(bs.empty());
+    REQUIRE((bs | bs).empty());
 
     bs ^= bs;
     REQUIRE(bs.empty());
+    REQUIRE((bs ^ bs).empty());
 
     bs.flip();
     REQUIRE(bs.empty());
+    REQUIRE((~bs).empty());
 
     bs.set();
     REQUIRE(bs.empty());
 
     bs.reset();
     REQUIRE(bs.empty());
+
+    CHECK_THAT(bs << 2, BitSetEqualsString("00"));
   }
 
   SECTION("single bit") {
@@ -138,9 +144,14 @@ TEST_CASE("bitwise operations") {
     BitSet lhs(1, lhs_bit);
 
     SECTION("flip") {
+      BitSet result = ~std::as_const(lhs);
       lhs.flip();
+
       REQUIRE(lhs.size() == 1);
       REQUIRE(lhs[0] == !lhs_bit);
+
+      REQUIRE(result.size() == 1);
+      REQUIRE(result[0] == !lhs_bit);
     }
 
     SECTION("set") {
@@ -155,26 +166,64 @@ TEST_CASE("bitwise operations") {
       REQUIRE(lhs[0] == false);
     }
 
+    SECTION("bit shift left") {
+      BitSet result = std::as_const(lhs) >> 1;
+      lhs >>= 1;
+
+      REQUIRE(lhs.empty());
+      REQUIRE(result.empty());
+    }
+
+    SECTION("bit shift right") {
+      BitSet result = std::as_const(lhs) << 2;
+      lhs <<= 2;
+
+      REQUIRE(lhs.size() == 3);
+      REQUIRE(result.size() == 3);
+
+      REQUIRE(lhs[0] == lhs_bit);
+      REQUIRE(lhs[1] == 0);
+      REQUIRE(lhs[2] == 0);
+      REQUIRE(result[0] == lhs_bit);
+      REQUIRE(result[1] == 0);
+      REQUIRE(result[2] == 0);
+    }
+
     bool rhs_bit = GENERATE(false, true);
     CAPTURE(rhs_bit);
-    BitSet rhs(1, rhs_bit);
+    const BitSet rhs(1, rhs_bit);
 
     SECTION("bitwise and") {
+      BitSet result = std::as_const(lhs) & rhs;
       lhs &= rhs;
+
       REQUIRE(lhs.size() == 1);
       REQUIRE(lhs[0] == (lhs_bit && rhs_bit));
+
+      REQUIRE(result.size() == 1);
+      REQUIRE(result[0] == (lhs_bit && rhs_bit));
     }
 
     SECTION("bitwise or") {
+      BitSet result = std::as_const(lhs) | rhs;
       lhs |= rhs;
+
       REQUIRE(lhs.size() == 1);
       REQUIRE(lhs[0] == (lhs_bit || rhs_bit));
+
+      REQUIRE(result.size() == 1);
+      REQUIRE(result[0] == (lhs_bit || rhs_bit));
     }
 
     SECTION("bitwise xor") {
+      BitSet result = std::as_const(lhs) ^ rhs;
       lhs ^= rhs;
+
       REQUIRE(lhs.size() == 1);
       REQUIRE(lhs[0] == (lhs_bit != rhs_bit));
+
+      REQUIRE(result.size() == 1);
+      REQUIRE(result[0] == (lhs_bit != rhs_bit));
     }
   }
 
@@ -183,37 +232,61 @@ TEST_CASE("bitwise operations") {
     BitSet lhs(lhs_str);
 
     SECTION("flip") {
+      BitSet result = ~std::as_const(lhs);
       lhs.flip();
-      CHECK_THAT(lhs, BitSetEqualsString("0010010"));
+      REQUIRE_THAT(lhs, BitSetEqualsString("0010010"));
+      REQUIRE_THAT(result, BitSetEqualsString("0010010"));
     }
 
     SECTION("set") {
       lhs.set();
-      CHECK_THAT(lhs, BitSetEqualsString("1111111"));
+      REQUIRE_THAT(lhs, BitSetEqualsString("1111111"));
     }
 
     SECTION("reset") {
       lhs.reset();
-      CHECK_THAT(lhs, BitSetEqualsString("0000000"));
+      REQUIRE_THAT(lhs, BitSetEqualsString("0000000"));
+    }
+
+    SECTION("bit shift left") {
+      BitSet result = std::as_const(lhs) >> 2;
+      lhs >>= 2;
+
+      REQUIRE_THAT(lhs, BitSetEqualsString("11011"));
+      REQUIRE_THAT(result, BitSetEqualsString("11011"));
+    }
+
+    SECTION("bit shift right") {
+      BitSet result = std::as_const(lhs) << 3;
+      lhs <<= 3;
+
+      REQUIRE_THAT(lhs, BitSetEqualsString("1101101000"));
+      REQUIRE_THAT(result, BitSetEqualsString("1101101000"));
     }
 
     std::string_view rhs_str = "0111001";
     CAPTURE(rhs_str);
-    BitSet rhs(rhs_str);
+    const BitSet rhs(rhs_str);
 
     SECTION("bitwise and") {
+      BitSet result = std::as_const(lhs) & rhs;
       lhs &= rhs;
-      CHECK_THAT(lhs, BitSetEqualsString("0101001"));
+      REQUIRE_THAT(lhs, BitSetEqualsString("0101001"));
+      REQUIRE_THAT(result, BitSetEqualsString("0101001"));
     }
 
     SECTION("bitwise or") {
+      BitSet result = std::as_const(lhs) | rhs;
       lhs |= rhs;
-      CHECK_THAT(lhs, BitSetEqualsString("1111101"));
+      REQUIRE_THAT(lhs, BitSetEqualsString("1111101"));
+      REQUIRE_THAT(result, BitSetEqualsString("1111101"));
     }
 
     SECTION("bitwise xor") {
+      BitSet result = std::as_const(lhs) ^ rhs;
       lhs ^= rhs;
-      CHECK_THAT(lhs, BitSetEqualsString("1010100"));
+      REQUIRE_THAT(lhs, BitSetEqualsString("1010100"));
+      REQUIRE_THAT(result, BitSetEqualsString("1010100"));
     }
   }
 
@@ -222,16 +295,21 @@ TEST_CASE("bitwise operations") {
     BitSet lhs(lhs_str);
 
     SECTION("flip") {
+      BitSet result = ~std::as_const(lhs);
       lhs.flip();
-      CHECK_THAT(
+      REQUIRE_THAT(
           lhs,
+          BitSetEqualsString("00001001000101111011010000010111100100000000111110011001101101110100011011001010")
+      );
+      REQUIRE_THAT(
+          result,
           BitSetEqualsString("00001001000101111011010000010111100100000000111110011001101101110100011011001010")
       );
     }
 
     SECTION("set") {
       lhs.set();
-      CHECK_THAT(
+      REQUIRE_THAT(
           lhs,
           BitSetEqualsString("11111111111111111111111111111111111111111111111111111111111111111111111111111111")
       );
@@ -239,36 +317,77 @@ TEST_CASE("bitwise operations") {
 
     SECTION("reset") {
       lhs.reset();
-      CHECK_THAT(
+      REQUIRE_THAT(
           lhs,
           BitSetEqualsString("00000000000000000000000000000000000000000000000000000000000000000000000000000000")
       );
     }
 
+    SECTION("bit shift left") {
+      BitSet result = std::as_const(lhs) >> 20;
+      lhs >>= 20;
+
+      REQUIRE_THAT(lhs, BitSetEqualsString("111101101110100001001011111010000110111111110000011001100100"));
+      REQUIRE_THAT(result, BitSetEqualsString("111101101110100001001011111010000110111111110000011001100100"));
+    }
+
+    SECTION("bit shift right") {
+      BitSet result = std::as_const(lhs) << 10;
+      lhs <<= 10;
+
+      REQUIRE_THAT(
+          lhs,
+          BitSetEqualsString(
+              "111101101110100001001011111010000110111111110000011001100100100010111001001101010000000000"
+          )
+      );
+      REQUIRE_THAT(
+          result,
+          BitSetEqualsString(
+              "111101101110100001001011111010000110111111110000011001100100100010111001001101010000000000"
+          )
+      );
+    }
+
     std::string_view rhs_str = "00011110011010000111001101110001000001000010001001011110010010110111011110111111";
     CAPTURE(rhs_str);
-    BitSet rhs(rhs_str);
+    const BitSet rhs(rhs_str);
 
     SECTION("bitwise and") {
+      BitSet result = std::as_const(lhs) & rhs;
       lhs &= rhs;
-      CHECK_THAT(
+      REQUIRE_THAT(
           lhs,
+          BitSetEqualsString("00010110011010000100001101100000000001000010000001000110010010000011000100110101")
+      );
+      REQUIRE_THAT(
+          result,
           BitSetEqualsString("00010110011010000100001101100000000001000010000001000110010010000011000100110101")
       );
     }
 
     SECTION("bitwise or") {
+      BitSet result = std::as_const(lhs) | rhs;
       lhs |= rhs;
-      CHECK_THAT(
+      REQUIRE_THAT(
           lhs,
+          BitSetEqualsString("11111110111010000111101111111001011011111111001001111110010010111111111110111111")
+      );
+      REQUIRE_THAT(
+          result,
           BitSetEqualsString("11111110111010000111101111111001011011111111001001111110010010111111111110111111")
       );
     }
 
     SECTION("bitwise xor") {
+      BitSet result = std::as_const(lhs) ^ rhs;
       lhs ^= rhs;
-      CHECK_THAT(
+      REQUIRE_THAT(
           lhs,
+          BitSetEqualsString("11101000100000000011100010011001011010111101001000111000000000111100111010001010")
+      );
+      REQUIRE_THAT(
+          result,
           BitSetEqualsString("11101000100000000011100010011001011010111101001000111000000000111100111010001010")
       );
     }
