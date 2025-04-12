@@ -605,7 +605,7 @@ TEST_CASE("chained view operations") {
   CHECK(bs_1 == BitSet("0011101011"));
   CHECK(bs_2 == BitSet("0001101010"));
 
-  bs_view_1.flip() |= bs_view_2;
+  bs_view_1.flip() |= bs_2;
   CHECK(bs_1 == BitSet("1101111110"));
   CHECK(bs_2 == BitSet("0001101010"));
 
@@ -613,9 +613,13 @@ TEST_CASE("chained view operations") {
   CHECK(bs_1 == BitSet("1100010100"));
   CHECK(bs_2 == BitSet("1110010101"));
 
-  std::as_const(bs_view_1).flip() &= bs_view_2;
+  std::as_const(bs_view_1).flip() &= std::as_const(bs_2);
   CHECK(bs_1 == BitSet("0010000001"));
   CHECK(bs_2 == BitSet("1110010101"));
+
+  std::as_const(bs_view_2) ^= bs_1;
+  CHECK(bs_1 == BitSet("0010000001"));
+  CHECK(bs_2 == BitSet("1100010100"));
 }
 
 TEST_CASE("iterators with different constness operations") {
