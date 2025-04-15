@@ -109,6 +109,33 @@ TEST_CASE("right shift") {
   }
 }
 
+TEST_CASE("left-right shifts with flip") {
+  SECTION("single word") {
+    std::string str = "1101101";
+    BitSet bs(str);
+    bs <<= 1;
+    bs.flip();
+    (bs >>= 1) <<= 1;
+
+    CHECK_THAT(bs, BitSetEqualsString("00100100"));
+  }
+
+  SECTION("multiple words") {
+    std::string str = "11110110111010000100101111101000011011111111000001100110010010001011100100110101";
+    std::string inv = "00001001000101111011010000010111100100000000111110011001101101110100011011001010";
+    BitSet bs(str);
+
+    std::size_t shift_count = GENERATE(0, 1, 5, 64, 190);
+    CAPTURE(shift_count);
+
+    bs <<= shift_count;
+    bs.flip();
+    (bs >>= shift_count) <<= shift_count;
+
+    CHECK_THAT(bs, BitSetEqualsString(inv + std::string(shift_count, '0')));
+  }
+}
+
 TEST_CASE("bitwise operations") {
   SECTION("empty") {
     BitSet bs;
