@@ -13,11 +13,20 @@ namespace ct::test {
 TEST_CASE("instantiations") {
   BitSet bs(1, false);
 
+  SECTION("operations") {
+    REQUIRE((bs & bs) == BitSet("0"));
+    REQUIRE((bs | bs) == BitSet("0"));
+    REQUIRE((bs ^ bs) == BitSet("0"));
+  }
+
   SECTION("reference") {
     BitSet::Reference ref = bs[0];
     ref.flip();
     ref = false;
     BitSet::ConstReference const_ref = ref;
+    const BitSet::Reference c_ref_copy = ref;
+    BitSet::Reference ref_copy = c_ref_copy;
+    REQUIRE(ref_copy == c_ref_copy);
     REQUIRE_FALSE(static_cast<bool>(ref));
     REQUIRE_FALSE(static_cast<bool>(const_ref));
   }
@@ -97,6 +106,13 @@ TEST_CASE("instantiations") {
     REQUIRE_FALSE(const_view.all());
     REQUIRE(view.count() == 0);
     REQUIRE(const_view.count() == 0);
+    REQUIRE_FALSE(view.empty());
+    REQUIRE_FALSE(const_view.empty());
+
+    REQUIRE(view == view);
+    REQUIRE_FALSE(view != view);
+    REQUIRE(const_view == const_view);
+    REQUIRE_FALSE(const_view != const_view);
 
     view.set();
     view.reset();
@@ -105,6 +121,13 @@ TEST_CASE("instantiations") {
     view |= BitSet(1, false).subview();
     view ^= BitSet(1, false).subview();
 
+    const BitSet::View c_view = view;
+    c_view.set();
+    c_view.reset();
+    c_view.flip();
+    c_view.subview();
+
+    c_view.reset();
     REQUIRE((view & view) == BitSet("0"));
     REQUIRE((view | view) == BitSet("0"));
     REQUIRE((view ^ view) == BitSet("0"));
@@ -133,6 +156,19 @@ TEST_CASE("instantiations") {
     std::ostringstream istr_2;
     istr_2 << const_view;
     REQUIRE(istr_2.str() == std::string("0"));
+
+    REQUIRE(bs == view);
+    REQUIRE_FALSE(bs != view);
+  }
+
+  SECTION("assign overloads") {
+    BitSet copy = bs;
+    BitSet::View view = bs.subview();
+    BitSet::ConstView const_view = bs.subview();
+
+    copy = view;
+    copy = const_view;
+    const_view = view;
   }
 }
 

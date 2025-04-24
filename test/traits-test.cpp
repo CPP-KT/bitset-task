@@ -71,4 +71,9 @@ TEST_CASE("triviality") {
   }
 }
 
+TEST_CASE("conversions") {
+  STATIC_CHECK(std::convertible_to<BitSet::Iterator, BitSet::ConstIterator>);
+  STATIC_CHECK(std::convertible_to<const BitSet::Iterator, const BitSet::ConstIterator>);
+}
+
 } // namespace ct::test

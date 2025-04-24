@@ -677,6 +677,24 @@ TEST_CASE("reference with different constness operations") {
   REQUIRE_FALSE(ref2 != ref1);
 }
 
+TEST_CASE("reference semantics") {
+  BitSet bs("10");
+  BitSet::Reference ref_1 = bs[0];
+  BitSet::Reference ref_copy = ref_1;
+  BitSet::Reference ref_2 = bs[1];
+
+  REQUIRE(ref_1);
+  REQUIRE(ref_copy);
+  REQUIRE_FALSE(ref_2);
+
+  ref_copy = ref_2;
+
+  REQUIRE(ref_1);
+  REQUIRE(bs[0]);
+  REQUIRE_FALSE(ref_copy);
+  REQUIRE_FALSE(ref_2);
+}
+
 TEST_CASE("view with different constness operations") {
   BitSet bs("110101");
   std::size_t i = GENERATE(0, 1, 4);
@@ -711,6 +729,8 @@ TEST_CASE("bitset and view comparison") {
   REQUIRE(const_view == bs);
   REQUIRE_FALSE(const_view != const_bs);
   REQUIRE_FALSE(const_view != bs);
+  REQUIRE(BitSet::View(BitSet("10")) == BitSet("10"));
+  REQUIRE(BitSet::ConstView(BitSet("10")) == BitSet("10"));
 }
 
 } // namespace ct::test
