@@ -649,6 +649,41 @@ TEST_CASE("chained view operations") {
   CHECK(bs_2 == BitSet("1100010100"));
 }
 
+TEST_CASE("multiple words view operations") {
+  BitSet bs1("00110001011000001000100110001110011011010000100001100110101100010000110111011100");
+  BitSet bs2("10111010001001111000100011000111011111011010100110101101110000010100110010101011");
+  SECTION("bit and") {
+    BitSet result("00110000001000001000100010000110011011010000100000100100100000010000110010001000");
+    for (size_t l = 1; l < bs1.size(); l++) {
+      BitSet temp = bs1;
+      for (size_t i = 0; i < temp.size(); i += l) {
+        temp.subview(i, l) &= bs2.subview(i, l);
+      }
+      REQUIRE(temp == result);
+    }
+  }
+  SECTION("bit or") {
+    BitSet result("10111011011001111000100111001111011111011010100111101111111100010100110111111111");
+    for (size_t l = 1; l < bs1.size(); l++) {
+      BitSet temp = bs1;
+      for (size_t i = 0; i < temp.size(); i += l) {
+        temp.subview(i, l) |= bs2.subview(i, l);
+      }
+      REQUIRE(temp == result);
+    }
+  }
+  SECTION("bit xor") {
+    BitSet result("10001011010001110000000101001001000100001010000111001011011100000100000101110111");
+    for (size_t l = 1; l < bs1.size(); l++) {
+      BitSet temp = bs1;
+      for (size_t i = 0; i < temp.size(); i += l) {
+        temp.subview(i, l) ^= bs2.subview(i, l);
+      }
+      REQUIRE(temp == result);
+    }
+  }
+}
+
 TEST_CASE("iterators with different constness operations") {
   BitSet bs("110101");
   std::ptrdiff_t i = GENERATE(0, 1, 6);
